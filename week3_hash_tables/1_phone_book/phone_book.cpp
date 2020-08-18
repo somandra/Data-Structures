@@ -2,14 +2,14 @@
 #include <vector>
 #include <string>
 
-using std::string;
-using std::vector;
-using std::cin;
+using namespace std;
 
 struct Query {
     string type, name;
     int number;
 };
+
+vector<string> contacts_list(10000000);
 
 vector<Query> read_queries() {
     int n;
@@ -66,7 +66,48 @@ vector<string> process_queries(const vector<Query>& queries) {
     return result;
 }
 
+vector<string> process_queries_direct_addressing(const vector<Query>& queries) {
+    vector<string> result;
+    
+    for (size_t i = 0; i < queries.size(); ++i)
+        if (queries[i].type == "add") {
+            bool was_founded = false;
+            // if we already have contact with such number,
+            // we should rewrite contact's name
+            
+            if (!contacts_list[queries[i].number].empty()) {
+                    contacts_list[queries[i].number] = queries[i].name;
+                    was_founded = true;
+            }
+            // otherwise, just add it
+            if (!was_founded)
+            {
+                contacts_list[queries[i].number] = queries[i].name;
+            }
+        } else if (queries[i].type == "del") {
+            if (!contacts_list[queries[i].number].empty())
+            {
+                contacts_list[queries[i].number] = "";
+            } 
+        } else {
+            string response = "not found";
+            if (!contacts_list[queries[i].number].empty())
+            {
+                response = contacts_list[queries[i].number];
+            }
+            
+            result.push_back(response);
+        }
+    return result;
+}
+
+
 int main() {
-    write_responses(process_queries(read_queries()));
+    for (size_t i = 0; i < contacts_list.size(); i++)
+    {
+        contacts_list[i] = "";
+    }
+    //write_responses(process_queries(read_queries()));
+    write_responses(process_queries_direct_addressing(read_queries()));
     return 0;
 }
