@@ -9,6 +9,15 @@ struct Data {
     string pattern, text;
 };
 
+size_t PolyHash(const string& s){
+    static const size_t multiplier = 263;
+    static const size_t prime = 100003;
+    unsigned long long hash = 0;
+    for (int i = static_cast<int> (s.size()) - 1; i >= 0; --i)
+        hash = (hash * multiplier + s[i]) % prime;
+    return hash;
+}
+
 Data read_input() {
     Data data;
     std::cin >> data.pattern >> data.text;
@@ -30,9 +39,51 @@ std::vector<int> get_occurrences(const Data& input) {
     return ans;
 }
 
+std::vector<size_t> PreComputeHash(const string& t,size_t len_t, size_t len_p){
+    static const size_t multiplier = 263;
+    static const size_t prime = 100003;
+    size_t n = len_t-len_p+1;
+    std::vector<size_t> H(n);
+    string s = t.substr(len_t-len_p);
+    H[len_t-len_p] = PolyHash(s);
+    unsigned long long y = 1;
+    for (size_t i = 1; i <=len_p; i++)
+    {
+        y = ((y*multiplier)%prime+prime)%prime;
+    }
+
+    for (size_t i = len_t-len_p-1; i >=0; i--)
+    {
+        H[i] = ((multiplier*H[i+1]+t[i]-y*t[i+len_p])%prime+prime)%prime;
+    }
+
+    return H;
+}
+
+std::vector<int> RabinKarp(const Data& input){
+    const string& p = input.pattern, t = input.text;
+    std::vector<int> result;
+    size_t pHash = PolyHash(p);
+    //std::cout<<pHash<<" "<<p.length()<<"\n";
+    //std::vector<size_t> H = PreComputeHash(t,t.length(),p.length());
+    for(int i=0;i<=t.length()-p.length(); i++){
+        size_t tHash = PolyHash(t.substr(i,p.length()));
+        //std::cout<<tHash<<" "<<t.substr(i,p.length())<<"\n";
+        if(pHash!=tHash){
+            continue;
+        }
+        if(t.substr(i,p.length()).compare(p)==0){
+            result.push_back(i);
+        }
+    }
+    return result;
+}
+
 
 int main() {
     std::ios_base::sync_with_stdio(false);
-    print_occurrences(get_occurrences(read_input()));
+    //print_occurrences(get_occurrences(read_input()));
+    print_occurrences(RabinKarp(read_input()));
+
     return 0;
 }

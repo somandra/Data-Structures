@@ -17,7 +17,7 @@ class QueryProcessor:
     def __init__(self, bucket_count):
         self.bucket_count = bucket_count
         # store all strings in one list
-        self.elems = []
+        self.elems = [None]*bucket_count
 
     def _hash_func(self, s):
         ans = 0
@@ -29,29 +29,35 @@ class QueryProcessor:
         print('yes' if was_found else 'no')
 
     def write_chain(self, chain):
-        print(' '.join(chain))
+        if chain!=None:
+            print(' '.join(chain))
+        else:
+            print(' ')
 
     def read_query(self):
         return Query(input().split())
 
     def process_query(self, query):
         if query.type == "check":
-            # use reverse order, because we append strings to the end
-            self.write_chain(cur for cur in reversed(self.elems)
-                        if self._hash_func(cur) == query.ind)
+            self.write_chain(self.elems[query.ind])
         else:
-            try:
-                ind = self.elems.index(query.s)
-            except ValueError:
-                ind = -1
+            hash_key = self._hash_func(query.s)
             if query.type == 'find':
-                self.write_search_result(ind != -1)
+                if self.elems[hash_key] != None and (query.s in self.elems[hash_key]):
+                    self.write_search_result(True)
+                else:
+                    self.write_search_result(False)
             elif query.type == 'add':
-                if ind == -1:
-                    self.elems.append(query.s)
+                if self.elems[hash_key] == None:
+                    self.elems[hash_key] = [query.s]
+                else:
+                    if query.s not in self.elems[hash_key]:
+                        self.elems[hash_key].insert(0, query.s)
             else:
-                if ind != -1:
-                    self.elems.pop(ind)
+                if self.elems[hash_key] != None and query.s in self.elems[hash_key]:
+                    self.elems[hash_key].remove(query.s)
+                    if len(self.elems[hash_key]) == 0:
+                        self.elems[hash_key] = None
 
     def process_queries(self):
         n = int(input())

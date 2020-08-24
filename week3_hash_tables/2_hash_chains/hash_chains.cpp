@@ -1,11 +1,5 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
-
-using std::string;
-using std::vector;
-using std::cin;
+#include <bits/stdc++.h>
+using namespace std;
 
 struct Query {
     string type, s;
@@ -26,8 +20,9 @@ class QueryProcessor {
     }
 
 public:
-    explicit QueryProcessor(int bucket_count): bucket_count(bucket_count) {}
-
+    int size;
+    vector<vector<string>> v;
+    explicit QueryProcessor(int bucket_count): bucket_count(bucket_count) { size = bucket_count;v.resize(size);}   
     Query readQuery() const {
         Query query;
         cin >> query.type;
@@ -63,11 +58,75 @@ public:
         }
     }
 
+    void processQuery_Hashing(const Query& query) {
+        if (query.type == "check") {
+            for (size_t i = 0; i < v[query.ind].size(); i++)
+            {
+                cout<<v[query.ind][i]<<" ";
+            }
+            std::cout << "\n";
+        } else {
+            long long index = hash_func(query.s);
+            if (query.type == "find"){
+                if (!v[index].empty())
+                {
+                    for (size_t i = 0; i < v[query.ind].size(); i++)
+                    {
+                        if(v[index][i] == query.s){
+                            writeSearchResult(true);
+                            break;
+                        }
+                    }  
+                }
+                else
+                {
+                    writeSearchResult(false);
+                }  
+            }
+            else if (query.type == "add") {
+                if (!v[index].empty())
+                {
+                    bool flag = false;
+                    for (size_t i = 0; i < v[query.ind].size(); i++)
+                    {
+                        if(v[index][i] == query.s){
+                            flag = true;
+                        }
+                    } 
+                    if(!flag) v[index].insert(v[index].begin(), query.s); 
+                }
+                else
+                {
+                    v[index][0] = query.s;
+                }
+                
+                
+               
+            } else if (query.type == "del") {
+                if (!v[index].empty())
+                {
+                    for (size_t i = 0; i < v[query.ind].size(); i++)
+                    {
+                        if(v[index][i] == query.s)
+                            v[index].erase(v[index].begin()+index-1);
+                            break;
+                        }
+                    }
+                    if (v[index].size()==0)
+                    {
+                        v[index].clear();
+                    }
+                      
+                }
+            }
+        }
+
     void processQueries() {
         int n;
         cin >> n;
         for (int i = 0; i < n; ++i)
-            processQuery(readQuery());
+            //processQuery(readQuery());
+            processQuery_Hashing(readQuery());
     }
 };
 
